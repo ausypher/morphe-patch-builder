@@ -514,7 +514,7 @@ get_apkpure_pkg_name() { return 1; }
 get_apkpure_vers() { return 1; }
 dl_apkpure() {
   local _url="$1" version="$2" output="$3" arch="$4" _dpi="$5"
-  rm -f "$output"
+  rm -f "$output" "${output}.apkm"
   pr "Using APKPure fallback for $pkg_name $version ($arch)"
   if ! python3 src/scrapers/apkpure_download.py "$pkg_name" "$version" "$arch" "$output"; then
     epr "APKPure download failed for $pkg_name $version ($arch)"
