@@ -5,7 +5,7 @@ CWD=$(pwd)
 TEMP_DIR="temp"
 BIN_DIR="bin"
 BUILD_DIR="build"
-DL_SRCS=("apkmirror" "github" "archive" "direct")
+DL_SRCS=("apkmirror" "apkpure" "github" "archive" "direct")
 
 if [ "${GITHUB_TOKEN-}" ]; then GH_HEADER="Authorization: token ${GITHUB_TOKEN}"; else GH_HEADER=; fi
 NEXT_VER_CODE=${NEXT_VER_CODE:-$(date +'%Y%m%d')}
@@ -506,6 +506,24 @@ get_apkmirror_resp() {
 	__APKMIRROR_JSON__=$(python3 apkmirror_bridge.py metadata "$1") || return 1
 	__APKMIRROR_CAT__=$(jq -r '.category // empty' <<<"$__APKMIRROR_JSON__")
 }
+# -------------------- APKPure fallback --------------------
+# APKPure is download-only here: exact package/version discovery remains with
+# APKMirror/GitHub/Archive, and check_sig() is the acceptance gate.
+get_apkpure_resp() { :; }
+get_apkpure_pkg_name() { return 1; }
+get_apkpure_vers() { return 1; }
+dl_apkpure() {
+  local _url="$1" version="$2" output="$3" arch="$4" _dpi="$5"
+  rm -f "$output"
+  pr "Using APKPure fallback for $pkg_name $version ($arch)"
+  if ! python3 src/scrapers/apkpure_download.py "$pkg_name" "$version" "$arch" "$output"; then
+    epr "APKPure download failed for $pkg_name $version ($arch)"
+    rm -f "$output"
+    return 1
+  fi
+  [ -s "$output" ]
+}
+# --------------------------------------------------
 # -------------------- github releases --------------------
 get_github_resp() {
 	__GITHUB_JSON__=$(python3 source_bridge.py github metadata "$1") || return 1
