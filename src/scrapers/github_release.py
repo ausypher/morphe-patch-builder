@@ -4,7 +4,7 @@ from __future__ import annotations
 import json
 import re
 from pathlib import Path
-from urllib.parse import unquote, urlparse
+from urllib.parse import unquote
 
 from src.core.network import NetworkManager
 from src.scrapers.base import AppMetadata, BaseScraper, DownloadResult, ScraperError
@@ -15,7 +15,6 @@ class GitHubReleaseError(ScraperError):
 
 
 class GitHubReleaseScraper(BaseScraper):
-    _ASSET_EXTENSIONS = (".apk", ".apkm", ".xapk", ".zip")
     _ARCHES = ("arm64-v8a", "armeabi-v7a", "arm-v7a", "x86_64", "x86", "all")
 
     def _release_api_url(self, url: str) -> tuple[str, str]:
@@ -78,6 +77,8 @@ class GitHubReleaseScraper(BaseScraper):
             parsed = self._asset_version_arch(str(asset.get("name", "")), package)
             if parsed and parsed[0] not in versions:
                 versions.append(parsed[0])
+        if not versions:
+            raise GitHubReleaseError(f"No APK assets were found in GitHub release {tag}")
         return AppMetadata(pkg_name=package, versions=versions)
 
     def download(
