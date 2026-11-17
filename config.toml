@@ -5,6 +5,7 @@ cli-version = "latest"
 
 [YouTube]
 app-name = "YouTube"
+pkg-name = "com.google.android.youtube"
 enabled = true
 version = "auto"
 patches-source = "sashade8-ship-it/dual-vot-patches"
@@ -20,6 +21,7 @@ exclusive-patches = false
 
 [Music]
 app-name = "Music"
+pkg-name = "com.google.android.apps.youtube.music"
 enabled = true
 patches-source = "sashade8-ship-it/dual-vot-patches"
 cli-source = "MorpheApp/morphe-cli"
