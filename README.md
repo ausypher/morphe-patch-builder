@@ -21,12 +21,25 @@ The core builder is based on [**elohim-etz/morphe-builder**](https://github.com/
 
 The APK download flow also includes components adapted from [**nvbangg/builder-for-morphe**](https://github.com/nvbangg/builder-for-morphe) for retrieving APKs from **APKMirror**. The APKMirror integration was tested in [**my-youtube-morphe**](https://github.com/ausypher/my-youtube-morphe) before being ported to this multi-app builder.
 
-### APK download priority
+### APK download and cache
 
-1. **Direct**
-2. **APKMirror** — uses the integrated APKMirror retrieval components from nvbangg/builder-for-morphe
-3. **Archive.org** — fallback source
+The builder resolves the required package/version first, then checks the dedicated
+`stock-cache` GitHub Release for an exact package + version + architecture match.
+Cached files are checksum-checked and their original signing certificate is
+verified before reuse. Split APKM files are cached in their original form so
+they can be merged again without losing the upstream signature evidence.
 
+On a cache miss, configured sources are tried in order:
+
+1. **APKMirror** — primary source, using the integrated APKMirror scraper
+2. **APKPure** — independent fallback for version-pinned single APKs
+3. **GitHub Releases** — configured release assets
+4. **Archive.org** — configured archive mirror
+5. **Direct URL** — optional manually supplied APK/APKM link
+
+A successfully downloaded file is cached only after the existing signing
+certificate check passes. The cache release stores APK binaries separately
+from the Git history and does not mix with patched-app releases.
 This fork is maintained separately. Links above identify the upstream project and the source of the APKMirror-related components.
 
 Use [**zygisk-detach**](https://github.com/j-hc/zygisk-detach) to detach YouTube and YT Music from Play Store if you are using modules. 
