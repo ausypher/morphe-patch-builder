@@ -64,6 +64,7 @@ jobs:
       MUSIC: ${{ steps.music.outputs.SHOULD_BUILD }}
 
   prepare_youtube:
+    needs: check
     if: ${{ needs.check.outputs.YOUTUBE == '1' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -434,7 +435,8 @@ jobs:
         run: gh release delete "$TAG" --yes || true
 
   prepare_music:
-    if: ${{ needs.check.outputs.MUSIC == '1' }}
+    needs: [check, release_youtube]
+    if: ${{ always() && needs.check.outputs.MUSIC == '1' && (needs.release_youtube.result == 'success' || needs.release_youtube.result == 'failure' || needs.release_youtube.result == 'skipped') }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
