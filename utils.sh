@@ -569,7 +569,15 @@ cache_download() {
   local dir="${TEMP_DIR}/apk-cache" stem ext asset checksum
   stem=$(_cache_asset_stem "$pkg" "$version" "$arch")
   mkdir -p "$dir"
-  gh release view stock-cache >/dev/null 2>&1 || return 1
+  if gh release view stock-cache >/dev/null 2>&1; then
+    # Convert the old public cache release to a draft before reading its assets.
+    if ! gh release edit stock-cache --draft >/dev/null 2>&1; then
+      wpr "Could not hide stock-cache release; skipping cache to protect ObtainX"
+      return 1
+    fi
+  else
+    return 1
+  fi
   for ext in apk apkm; do
     asset="${stem}.${ext}"; checksum="${asset}.sha256"
     rm -f "$dir/$asset" "$dir/$checksum"
