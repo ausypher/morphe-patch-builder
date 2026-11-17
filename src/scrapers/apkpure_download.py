@@ -69,9 +69,10 @@ def main() -> int:
         if size == 0:
             destination.unlink(missing_ok=True)
             raise RuntimeError("downloaded file is empty")
-        if destination.read_bytes()[:2] != b"PK":
-            destination.unlink(missing_ok=True)
-            raise RuntimeError("download response is not a ZIP/APK archive")
+        with destination.open("rb") as downloaded:
+            if downloaded.read(2) != b"PK":
+                destination.unlink(missing_ok=True)
+                raise RuntimeError("download response is not a ZIP/APK archive")
 
         print(f"APKPure downloaded {package} {version}: {size} bytes", file=sys.stderr)
         return 0
