@@ -580,10 +580,23 @@ cache_download() {
       continue
     fi
     if [ "$ext" = apkm ]; then
+      local base_apk="${dir}/${stem}.base.apk"
+      unzip -p "$dir/$asset" base.apk > "$base_apk" 2>/dev/null || { rm -f "$base_apk"; continue; }
+      if ! check_sig "$base_apk" "$pkg" >/dev/null 2>&1; then
+        epr "Cached APKM signature mismatch: $asset"
+        rm -f "$base_apk"
+        continue
+      fi
+      rm -f "$base_apk"
       cp -f "$dir/$asset" "${output}.apkm"
       merge_splits "${output}.apkm" "$output" || { rm -f "${output}.apkm" "$output"; continue; }
     else
       cp -f "$dir/$asset" "$output"
+      if ! check_sig "$output" "$pkg" >/dev/null 2>&1; then
+        epr "Cached APK signature mismatch: $asset"
+        rm -f "$output"
+        continue
+      fi
     fi
     pr "Using cached stock APK: $pkg $version ($arch)"
     return 0
