@@ -13,6 +13,8 @@ build-mode = "apk"
 version = "21.23.492" 
 arch = "arm-v7a"
 apkmirror-dlurl = "https://www.apkmirror.com/apk/google-inc/youtube"
+uptodown-dlurl = "https://youtube.en.uptodown.com/android"
+github-dlurl = "https://github.com/dj-tanjid/AppRepo/releases/tag/com.google.android.youtube"
 archive-dlurl = "https://archive.org/download/jhc-apks/apks/com.google.android.youtube"
 patcher-args = "-e 'Change header' -Ocustom=res -e 'Custom branding' -OcustomIcon=res"
 
