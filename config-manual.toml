@@ -5,6 +5,7 @@ cli-version = "latest"
 
 [YouTube]
 app-name = "A9 YouTube"
+pkg-name = "com.google.android.youtube"
 enabled = true
 patches-source = "sashade8-ship-it/dual-vot-patches"
 cli-source = "MorpheApp/morphe-cli"
@@ -13,7 +14,7 @@ build-mode = "apk"
 version = "21.23.492" 
 arch = "arm-v7a"
 apkmirror-dlurl = "https://www.apkmirror.com/apk/google-inc/youtube"
-uptodown-dlurl = "https://youtube.en.uptodown.com/android"
+apkpure-dlurl = "https://apkpure.net/youtube/com.google.android.youtube"
 archive-dlurl = "https://archive.org/download/jhc-apks/apks/com.google.android.youtube"
 patcher-args = "-e 'Change header' -Ocustom=res -e 'Custom branding' -OcustomIcon=res"
 
