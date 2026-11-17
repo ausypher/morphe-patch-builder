@@ -624,7 +624,8 @@ cache_upload() {
   else
     wpr "Could not upload stock APK to cache"
   fi
-}# --------------------------------------------------
+}
+# --------------------------------------------------
 # -------------------- archive --------------------
 dl_archive() {
 	local url=$1 version=$2 output=$3 arch=$4
