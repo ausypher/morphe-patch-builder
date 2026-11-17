@@ -41,7 +41,7 @@ def main() -> int:
         match = re.search(r'id="download_link"[^>]*href="([^"]+)"', page.text)
         if not match:
             match = re.search(
-                r'href="(https?://d\\.apkpure\\.net/b/APK/[^"]+)"',
+                r'href="(https?://d[.]apkpure[.]net/b/APK/[^"]+)"',
                 page.text,
             )
         if not match:
