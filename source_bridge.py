@@ -8,13 +8,12 @@ from pathlib import Path
 
 from src.core.network import NetworkManager
 from src.scrapers.github_release import GitHubReleaseScraper
-from src.scrapers.uptodown import UptodownScraper
 
 
 def main() -> int:
     if len(sys.argv) < 4:
         print(
-            "Usage: source_bridge.py <uptodown|github> <metadata|download> URL "
+            "Usage: source_bridge.py <github> <metadata|download> URL "
             "[VERSION OUTPUT ARCH DPI]",
             file=sys.stderr,
         )
@@ -22,7 +21,6 @@ def main() -> int:
 
     provider, action, url = sys.argv[1:4]
     scrapers = {
-        "uptodown": UptodownScraper,
         "github": GitHubReleaseScraper,
     }
     scraper_type = scrapers.get(provider)
