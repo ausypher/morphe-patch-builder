@@ -510,7 +510,11 @@ get_apkmirror_resp() {
 # APKPure is download-only here: exact package/version discovery remains with
 # APKMirror/GitHub/Archive, and check_sig() is the acceptance gate.
 get_apkpure_resp() { :; }
-get_apkpure_pkg_name() { return 1; }
+get_apkpure_pkg_name() {
+  local url="${args[apkpure_dlurl]%/}"
+  [ -n "$url" ] || return 1
+  printf "%s\\n" "${url##*/}"
+}
 get_apkpure_vers() { return 1; }
 dl_apkpure() {
   local _url="$1" version="$2" output="$3" arch="$4" _dpi="$5"
