@@ -53,6 +53,8 @@ class UptodownScraper(BaseScraper):
 
         versions_soup = parse_html(self.net.get(f"{base}/versions"))
         versions = [node.get_text(strip=True) for node in versions_soup.select(".version")]
+        if not versions:
+            raise UptodownError(f"No versions were listed for {base}")
         return AppMetadata(pkg_name=package, versions=versions)
 
     @staticmethod
