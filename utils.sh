@@ -544,32 +544,42 @@ cache_download() {
   local pkg="$1" version="$2" arch="$3" output="$4"
   [ -n "${GITHUB_REPOSITORY-}" ] || return 1
   command -v gh >/dev/null 2>&1 || return 1
-  local dir="${TEMP_DIR}/apk-cache" stem asset checksum
+  local dir="${TEMP_DIR}/apk-cache" stem ext asset checksum
   stem=$(_cache_asset_stem "$pkg" "$version" "$arch")
-  asset="${stem}.apk"; checksum="${asset}.sha256"
-  mkdir -p "$dir"; rm -f "$dir/$asset" "$dir/$checksum"
+  mkdir -p "$dir"
   gh release view stock-cache >/dev/null 2>&1 || return 1
-  if ! gh release download stock-cache --pattern "$asset" --pattern "$checksum" --dir "$dir" >/dev/null 2>&1; then
-    rm -f "$dir/$asset" "$dir/$checksum"; return 1
-  fi
-  if ! (cd "$dir" && sha256sum -c "$checksum" >/dev/null 2>&1) || ! unzip -tq "$dir/$asset" >/dev/null 2>&1; then
-    epr "Cached APK failed checksum/archive validation: $asset"
-    rm -f "$dir/$asset" "$dir/$checksum"; return 1
-  fi
-  cp -f "$dir/$asset" "$output"
-  pr "Using cached stock APK: $pkg $version ($arch)"
-  return 0
+  for ext in apk apkm; do
+    asset="${stem}.${ext}"; checksum="${asset}.sha256"
+    rm -f "$dir/$asset" "$dir/$checksum"
+    if ! gh release download stock-cache --pattern "$asset" --pattern "$checksum" --dir "$dir" >/dev/null 2>&1; then continue; fi
+    if ! (cd "$dir" && sha256sum -c "$checksum" >/dev/null 2>&1) || ! unzip -tq "$dir/$asset" >/dev/null 2>&1; then
+      epr "Cached APK failed checksum/archive validation: $asset"
+      rm -f "$dir/$asset" "$dir/$checksum"
+      continue
+    fi
+    if [ "$ext" = apkm ]; then
+      cp -f "$dir/$asset" "${output}.apkm"
+      merge_splits "${output}.apkm" "$output" || { rm -f "${output}.apkm" "$output"; continue; }
+    else
+      cp -f "$dir/$asset" "$output"
+    fi
+    pr "Using cached stock APK: $pkg $version ($arch)"
+    return 0
+  done
+  return 1
 }
 cache_upload() {
-  local pkg="$1" version="$2" arch="$3" input="$4"
+  local pkg="$1" version="$2" arch="$3" input="$4" source ext dir stem asset checksum
   [ -n "${GITHUB_REPOSITORY-}" ] || return 0
   command -v gh >/dev/null 2>&1 || { wpr "GitHub CLI unavailable; skipping APK cache upload"; return 0; }
-  [ -s "$input" ] || return 0
-  if ! unzip -tq "$input" >/dev/null 2>&1; then wpr "Stock APK failed archive validation; not caching"; return 0; fi
-  local dir="${TEMP_DIR}/apk-cache-upload" stem asset checksum
+  source="$input"; ext=apk
+  if [ -s "${input}.apkm" ]; then source="${input}.apkm"; ext=apkm; fi
+  [ -s "$source" ] || return 0
+  if ! unzip -tq "$source" >/dev/null 2>&1; then wpr "Stock APK failed archive validation; not caching"; return 0; fi
+  dir="${TEMP_DIR}/apk-cache-upload"
   stem=$(_cache_asset_stem "$pkg" "$version" "$arch")
-  asset="${stem}.apk"; checksum="${asset}.sha256"
-  mkdir -p "$dir"; cp -f "$input" "$dir/$asset"
+  asset="${stem}.${ext}"; checksum="${asset}.sha256"
+  mkdir -p "$dir"; cp -f "$source" "$dir/$asset"
   (cd "$dir" && sha256sum "$asset" > "$checksum")
   if ! gh release view stock-cache >/dev/null 2>&1; then
     gh release create stock-cache --title "Stock APK cache" --notes "Original APK cache keyed by package, version and architecture." >/dev/null || { wpr "Could not create stock-cache release"; return 0; }
@@ -579,8 +589,7 @@ cache_upload() {
   else
     wpr "Could not upload stock APK to cache"
   fi
-}
-# --------------------------------------------------
+}# --------------------------------------------------
 # -------------------- archive --------------------
 dl_archive() {
 	local url=$1 version=$2 output=$3 arch=$4
