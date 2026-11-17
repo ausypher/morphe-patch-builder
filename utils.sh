@@ -617,7 +617,7 @@ cache_upload() {
   mkdir -p "$dir"; cp -f "$source" "$dir/$asset"
   (cd "$dir" && sha256sum "$asset" > "$checksum")
   if ! gh release view stock-cache >/dev/null 2>&1; then
-    gh release create stock-cache --title "Stock APK cache" --notes "Original APK cache keyed by package, version and architecture." >/dev/null || { wpr "Could not create stock-cache release"; return 0; }
+    gh release create stock-cache --draft --title "Stock APK cache" --notes "Private-to-release-feed original APK cache keyed by package, version and architecture." >/dev/null || { wpr "Could not create stock-cache release"; return 0; }
   fi
   if gh release upload stock-cache "$dir/$asset" "$dir/$checksum" --clobber >/dev/null; then
     pr "Cached stock APK: $pkg $version ($arch)"
