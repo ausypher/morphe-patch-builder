@@ -79,7 +79,12 @@ class UptodownScraper(BaseScraper):
             "x8664": ("x8664",),
             "x86": ("x86",),
         }
-        return arch in ("all", "both", "") or any(alias in value for alias in aliases.get(target, (target,)))
+        if arch in ("all", "both", ""):
+            return True
+        candidates = aliases.get(target, (target,))
+        if target in ("x86", "x8664"):
+            return value in candidates
+        return any(alias in value for alias in candidates)
 
     def download(
         self,
