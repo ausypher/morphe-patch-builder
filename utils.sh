@@ -5,7 +5,7 @@ CWD=$(pwd)
 TEMP_DIR="temp"
 BIN_DIR="bin"
 BUILD_DIR="build"
-DL_SRCS=("direct" "apkmirror" "archive")
+DL_SRCS=("direct" "apkmirror" "uptodown" "github" "archive")
 
 if [ "${GITHUB_TOKEN-}" ]; then GH_HEADER="Authorization: token ${GITHUB_TOKEN}"; else GH_HEADER=; fi
 NEXT_VER_CODE=${NEXT_VER_CODE:-$(date +'%Y%m%d')}
@@ -506,6 +506,58 @@ get_apkmirror_resp() {
 	__APKMIRROR_JSON__=$(python3 apkmirror_bridge.py metadata "$1") || return 1
 	__APKMIRROR_CAT__=$(jq -r '.category // empty' <<<"$__APKMIRROR_JSON__")
 }
+# -------------------- uptodown --------------------
+get_uptodown_resp() {
+	__UPTODOWN_JSON__=$(python3 source_bridge.py uptodown metadata "$1") || return 1
+}
+get_uptodown_pkg_name() {
+	jq -r '.pkg_name // empty' <<<"${__UPTODOWN_JSON__:-}"
+}
+get_uptodown_vers() {
+	jq -r '.versions[]?' <<<"${__UPTODOWN_JSON__:-}"
+}
+dl_uptodown() {
+	local url=$1 version=$2 output=$3 arch=$4 dpi=$5
+	rm -f "$output" "${output}.apkm"
+	if ! python3 source_bridge.py uptodown download "$url" "$version" "$output" "$arch" "$dpi"; then
+		epr "Uptodown download failed for version '$version', arch '$arch'"
+		return 1
+	fi
+	if [ -f "${output}.apkm" ]; then
+		merge_splits "${output}.apkm" "$output" || return 1
+	elif [ ! -f "$output" ]; then
+		epr "Uptodown returned without an APK"
+		return 1
+	fi
+	return 0
+}
+
+# -------------------- github releases --------------------
+get_github_resp() {
+	__GITHUB_JSON__=$(python3 source_bridge.py github metadata "$1") || return 1
+}
+get_github_pkg_name() {
+	jq -r '.pkg_name // empty' <<<"${__GITHUB_JSON__:-}"
+}
+get_github_vers() {
+	jq -r '.versions[]?' <<<"${__GITHUB_JSON__:-}"
+}
+dl_github() {
+	local url=$1 version=$2 output=$3 arch=$4 dpi=$5
+	rm -f "$output" "${output}.apkm"
+	if ! python3 source_bridge.py github download "$url" "$version" "$output" "$arch" "$dpi"; then
+		epr "GitHub release download failed for version '$version', arch '$arch'"
+		return 1
+	fi
+	if [ -f "${output}.apkm" ]; then
+		merge_splits "${output}.apkm" "$output" || return 1
+	elif [ ! -f "$output" ]; then
+		epr "GitHub release returned without an APK"
+		return 1
+	fi
+	return 0
+}
+
 # -------------------- archive --------------------
 dl_archive() {
 	local url=$1 version=$2 output=$3 arch=$4
