@@ -21,6 +21,10 @@ The core builder is based on [**elohim-etz/morphe-builder**](https://github.com/
 
 The APK download flow also includes components adapted from [**nvbangg/builder-for-morphe**](https://github.com/nvbangg/builder-for-morphe) for retrieving APKs from **APKMirror**. The APKMirror integration was tested in [**my-youtube-morphe**](https://github.com/ausypher/my-youtube-morphe) before being ported to this multi-app builder.
 
+## Engineering inspiration
+
+This project also draws on valuable ideas and practical engineering solutions from [**pmaxhogan/vantage**](https://github.com/pmaxhogan/vantage). Its approach to reliable APK acquisition and build automation is an important reference, particularly stock-APK caching, signing-certificate verification, multiple download sources with fallbacks, and resilient download tooling. These ideas are adapted where appropriate to this project's own architecture and requirements.
+
 ### APK download and cache
 
 The builder resolves the required package/version first, then checks the dedicated
